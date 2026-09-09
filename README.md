@@ -1,76 +1,72 @@
 # Constructo
 
-An AI agent that construction site engineers query from Telegram to get answers
-about their own project: the budget, the drawings, the schedule, the contract.
+Un agente de IA que los ingenieros de una obra consultan por Telegram para
+preguntarle sobre su propio proyecto: el presupuesto, los planos, el cronograma,
+el contrato.
 
-It has been running in production since July 2026 on a commercial building
-project, used daily by site engineers who are not its author.
+Está en producción desde julio de 2026 en una obra de edificación comercial, y lo
+usan a diario ingenieros que no son quien lo escribió.
 
-## The problem
+## El problema
 
-On a fixed unit-price contract, the contractor's margin is decided by whether
-the work executed matches what was priced. That information exists, but it lives
-in a 3,000-row budget spreadsheet, a folder of drawings, and a signed contract.
-An engineer standing on site cannot query any of it, so the answer arrives days
-later, by phone, or not at all.
+En un contrato a precios unitarios, el margen del contratista se decide por si lo
+que se ejecuta coincide con lo que se presupuestó. Esa información existe, pero
+vive en un presupuesto de 3.000 filas, una carpeta de planos y un contrato
+firmado. El ingeniero que está parado en la obra no puede consultar nada de eso,
+así que la respuesta llega días después, por teléfono, o no llega.
 
-## The design constraint that mattered
+## La restricción de diseño que resultó importante
 
-The hard part was not answering questions. It was **not being trusted blindly**.
+Lo difícil no fue responder preguntas. Fue **que no le crean a ciegas**.
 
-A construction budget holds two very different kinds of number: what the signed
-contract says, and what our own analysis estimates. Confusing them is how a
-contractor commits to a price that does not hold. So every answer the agent
-gives states which one it is using, names the file it came from, and says
-plainly what is still unreconciled instead of smoothing it over.
+Un presupuesto de obra guarda dos tipos de número muy distintos: lo que dice el
+contrato firmado, y lo que estima nuestro propio análisis. Confundirlos es como un
+contratista termina comprometiendo un precio que no se sostiene. Por eso cada
+respuesta del agente dice cuál de los dos está usando, nombra el archivo de donde
+salió, y advierte con todas las letras lo que sigue sin conciliar en lugar de
+maquillarlo.
 
-The rule is: a wrong number should never be able to travel as an official one.
+La regla es: un número equivocado nunca debe poder viajar como si fuera oficial.
 
-## How it works
+## Cómo funciona
 
 ```
-Telegram  ->  bot_telegram.py  ->  cerebro.py  ->  claude (headless)  ->  project folder
+Telegram  ->  bot_telegram.py  ->  cerebro.py  ->  claude (headless)  ->  carpeta de la obra
 ```
 
-| File | What it does |
+| Archivo | Qué hace |
 |---|---|
-| `agente/bot_telegram.py` | Talks to Telegram: receives questions, enforces the allowlist, sends back answers and any file the agent produced |
-| `agente/cerebro.py` | The reasoning step. Runs `claude` in headless mode inside the project folder, with the excluded folders blocked, and collects what it wrote |
-| `agente/config.py` | Settings you are meant to change: model, reasoning effort, memory depth |
-| `comun/` | Templates and the hydration script used to set up a new project folder |
+| `agente/bot_telegram.py` | Habla con Telegram: recibe las preguntas, aplica la lista de autorizados, devuelve respuestas y los archivos que el agente haya generado |
+| `agente/cerebro.py` | El paso de razonamiento. Ejecuta `claude` en modo headless dentro de la carpeta de la obra, con las carpetas excluidas bloqueadas, y recoge lo que escribió |
+| `agente/config.py` | Los ajustes que sí se tocan: modelo, esfuerzo de razonamiento, memoria de la conversación |
+| `comun/` | Plantillas y el script de hidratación para montar la carpeta de una obra nueva |
 
-Design decisions worth naming:
+Decisiones que vale la pena nombrar:
 
-- **One instance per project.** Same code, separate processes, each with its own
-  bot token, its own allowlist, and its own data root. No instance can read
-  another project's folder. Construction data is confidential per client.
-- **The code holds no data.** The project folder is passed in through the
-  `OBRA_RAIZ` environment variable, which is why this repository can be public
-  while the projects stay private.
-- **Some folders are invisible to the agent.** `_restringido/` holds material we
-  deliberately keep out of its reach.
-- **No API key.** The agent reasons by calling the local `claude` binary under a
-  personal subscription, which is what made it cheap enough to run daily while
-  it was still an experiment.
+- **Una instancia por obra.** Mismo código, procesos separados, cada uno con su
+  token de bot, su lista de autorizados y su raíz de datos. Ninguna instancia
+  puede leer la carpeta de otra obra: la información de construcción es
+  confidencial por cliente.
+- **El código no contiene datos.** La carpeta de la obra se le pasa en la
+  variable `OBRA_RAIZ`, y su nombre en `OBRA_NOMBRE`. Por eso este repositorio
+  puede ser público mientras las obras siguen siendo privadas.
+- **Hay carpetas invisibles para el agente.** En `_restringido/` va el material
+  que deliberadamente queda fuera de su alcance.
+- **Sin API key.** El agente razona llamando al programa `claude` instalado en el
+  Mac, con una suscripción personal. Eso fue lo que lo hizo barato de operar a
+  diario mientras todavía era un experimento.
 
-## What is deliberately not in this repository
+## Qué no está en este repositorio, a propósito
 
-No budgets, drawings, contracts, or client documents. Not a single figure from a
-real project. Those belong to the contractors, not to me, and a public repository
-is not the place for them. What is here is the machinery; the data stays where it
-was produced.
+Ningún presupuesto, plano, contrato ni documento de cliente. Ni una sola cifra de
+una obra real. Eso es de los contratistas, no mío, y un repositorio público no es
+su lugar. Aquí está la maquinaria; los datos se quedan donde se produjeron.
 
-Client and project names are replaced by aliases for the same reason.
+Los nombres de clientes y proyectos tampoco aparecen, por la misma razón.
 
-## Running it
+## Cómo ponerlo a andar
 
-See `agente/README.md` for setup: creating the bot, installing dependencies,
-collecting the Telegram user ids of the engineers, and storing the token.
+En `agente/README.md` está el paso a paso: crear el bot, instalar las librerías,
+conseguir los id de Telegram de los ingenieros y guardar el token.
 
-Secrets live in `~/.config/agente-obra/.env`, never in the repository.
-
-## A note on language
-
-The code and its comments are in Spanish. The people who use this agent are
-Colombian site engineers, and the person maintaining it is learning to read code
-as he goes. Writing it in the language of its users was the point.
+Los secretos viven en `~/.config/agente-obra/.env`, nunca en el repositorio.
