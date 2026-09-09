@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.tuusuario.hidratar-obras</string>
+
+    <!-- Ojo con la ruta del intérprete: tiene que ser el binario real de Python.app,
+         no /usr/bin/python3, que es un stub. El permiso de Acceso Total al Disco que
+         macOS necesita para leer ~/Library/CloudStorage está concedido a Python.app;
+         lanzado por el stub, el proceso no lo hereda y todas las lecturas fallan con
+         "Operation not permitted" en silencio. Es el mismo problema que tuvo el
+         servicio onedrive-md-sync. -->
+    <key>ProgramArguments</key>
+    <array>
+        <string>/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/Resources/Python.app/Contents/MacOS/Python</string>
+        <string>/Users/TU-USUARIO/Library/CloudStorage/OneDrive-MassachusettsInstituteofTechnology/Agentes para construccion/_comun/scripts/hidratar.py</string>
+    </array>
+
+    <!-- Cada 5 minutos. El manifiesto hace que una corrida sin novedades cueste
+         menos de 2 segundos, así que el intervalo corto no pesa. -->
+    <key>StartInterval</key>
+    <integer>300</integer>
+
+    <key>RunAtLoad</key>
+    <true/>
+
+    <key>Nice</key>
+    <integer>10</integer>
+
+    <key>ProcessType</key>
+    <string>Background</string>
+
+    <key>StandardOutPath</key>
+    <string>/Users/TU-USUARIO/.local/state/hidratar-obras/launchd.out.log</string>
+    <key>StandardErrorPath</key>
+    <string>/Users/TU-USUARIO/.local/state/hidratar-obras/launchd.err.log</string>
+</dict>
+</plist>

@@ -1,0 +1,32 @@
+# Secretos: nunca, bajo ninguna circunstancia
+.env
+*.env
+llaves*
+
+# Documentos de obra. Este repositorio es codigo; los datos de cada proyecto
+# (presupuestos, planos, contratos, actas) viven aparte y no se publican.
+*.pdf
+*.xlsx
+*.xls
+*.csv
+*.docx
+*.pptx
+*.dwg
+*.dxf
+*.rvt
+
+# Carpetas de datos, por si alguna vez se copia una por error
+_restringido/
+_entrada/
+_salidas/
+datos/
+
+# Ruido del sistema y de Python
+.DS_Store
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# Configuracion local con rutas del equipo
+comun/scripts/carpetas.conf

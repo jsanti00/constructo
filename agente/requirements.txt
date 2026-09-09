@@ -1,0 +1,7 @@
+# Librerías que necesita el agente. Se instalan con:
+#   pip3 install -r requirements.txt
+#
+# Nota: el agente NO usa la librería 'anthropic' ni una API key. Piensa
+# llamando al programa 'claude' (Claude Code) ya instalado en el Mac, que
+# funciona con la suscripción de Santiago.
+python-telegram-bot>=21.0

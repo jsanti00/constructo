@@ -1,0 +1,9 @@
+# Carpetas que se mantienen descargadas localmente.
+# Una ruta absoluta por línea. Todo lo que empiece con # es comentario.
+#
+# Regla: solo carpetas de trabajo de los agentes de obra. No agregar la raíz del
+# OneDrive ni carpetas de otros dominios (MBA, finanzas, Synappse): forzaría la
+# descarga de todo el drive y no es el problema que este script resuelve.
+
+# Ejemplo. Copia este archivo como carpetas.conf y pon tus rutas:
+# /ruta/a/tu/carpeta de obras
