@@ -46,7 +46,7 @@ Como complemento, no como reemplazo, conviene marcar la carpeta en Finder con cl
 
 ## Cómo arrancar un proyecto nuevo
 
-1. Crea la carpeta del proyecto bajo `Agentes para construccion/`, nombrada `<Obra> (<stakeholder>)`.
+1. Crea la carpeta del proyecto bajo `Constructo/`, nombrada `<Obra> (<stakeholder>)`.
 2. Copia `plantillas/AGENTS-plantilla-proyecto.md` a la raíz del proyecto como `AGENTS.md` y llena los marcadores `<...>`.
 3. Crea `_entrada/` y `_restringido/` con los READMEs de `plantillas/`.
 4. Define los **dominios** según el ciclo de decisión de ese stakeholder. No copies los dominios de otro proyecto: el contratista y el dueño de obra no se hacen las mismas preguntas.

@@ -14,7 +14,7 @@
     <key>ProgramArguments</key>
     <array>
         <string>/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/Resources/Python.app/Contents/MacOS/Python</string>
-        <string>/Users/TU-USUARIO/Library/CloudStorage/OneDrive-MassachusettsInstituteofTechnology/Agentes para construccion/_comun/scripts/hidratar.py</string>
+        <string>/Users/TU-USUARIO/Library/CloudStorage/OneDrive-MassachusettsInstituteofTechnology/Constructo/_comun/scripts/hidratar.py</string>
     </array>
 
     <!-- Cada 5 minutos. El manifiesto hace que una corrida sin novedades cueste

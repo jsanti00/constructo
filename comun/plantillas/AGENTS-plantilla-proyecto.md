@@ -8,7 +8,7 @@
 
 **Quién consulta el agente:** <nombres y rol>. Los ids autorizados viven en `_agente/config.py` (`ALLOWED_USER_IDS`). Consecuencia al escribir aquí: **lo que se guarde en esta carpeta lo pueden leer esos usuarios**, salvo lo que esté en `_restringido/`.
 
-Este es un contexto hijo. Aplica primero el `AGENTS.md` de `Agentes para construccion/` (doctrina común) y el raíz del OneDrive.
+Este es un contexto hijo. Aplica primero el `AGENTS.md` de `Constructo/` (doctrina común) y el raíz del OneDrive.
 
 ---
 
