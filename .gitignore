@@ -30,3 +30,6 @@ venv/
 
 # Configuracion local con rutas del equipo
 comun/scripts/carpetas.conf
+
+# Configuracion local de Claude Code (permisos personales, no se publica)
+.claude/settings.local.json
