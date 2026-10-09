@@ -75,6 +75,7 @@ Toda respuesta empieza con la regla de autoridad: **es una referencia pública, 
 - Los 140 Excel provinciales repiten los mismos datos base (composición de los APU y matrices de precios de las 140 provincias). Lo propio de cada uno es el cálculo ya hecho para su provincia: rendimientos ajustados por altitud y temperatura, y costo de cada APU. Por eso se cargan desde el archivo provincial y no se reimplementan las fórmulas de INVIAS.
 - En mano de obra, el "rendimiento" es unidades por jornal (el valor se divide), mientras que en equipo es horas por unidad (el valor se multiplica).
 - No cubre Bogotá D.C. ni acabados de edificación: es una base de obra vial.
+- **Fechas de la edición 2026-1:** las hojas dicen "2026-1, Julio de 2025" y la hoja de mano de obra muestra el salario mínimo 2025 (1.423.500), pero la página de INVIAS la presenta como la edición del periodo 2026-1 (modificada el 22-jul-2026) y fija la mano de obra con el Decreto 1469 de 2025 (salario mínimo 2026: el Obrero gana 1.750.905). Lectura: los insumos vienen de estudios de mercado de 2025 y la mano de obra ya está a precios de 2026. Se carga con `--publicacion` para que la consulta no muestre "Julio de 2025" sin explicación.
 
 ## Conexión con los agentes
 

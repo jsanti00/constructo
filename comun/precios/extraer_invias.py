@@ -491,6 +491,8 @@ def main():
     p = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     p.add_argument("--edicion", required=True, help="edición INVIAS, ej. 2026-1")
     p.add_argument("--solo-verificar", action="store_true", help="verifica sin escribir en la base")
+    p.add_argument("--publicacion", help="texto de publicación a mostrar, si el del Excel confunde "
+                   "(ej. la hoja de 2026-1 dice 'Julio de 2025')")
     p.add_argument("archivos", nargs="+", type=Path)
     args = p.parse_args()
 
@@ -508,6 +510,10 @@ def main():
             fallidos += 1
             print("  NO SE CARGÓ: hay chequeos fallidos.")
         elif con:
+            # Aquí reemplazamos el texto de publicación del Excel si se dio uno más claro
+            if args.publicacion:
+                for a in datos["apus"].values():
+                    a["publicacion"] = args.publicacion
             guardar(con, args.edicion, ruta, datos)
             print(f"  Cargado: {datos['departamento']} / {datos['provincia']} (región {datos['region']}), "
                   f"{len(datos['indice'])} APU, {len(datos['insumos'])} insumos, "
