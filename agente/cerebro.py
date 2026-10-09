@@ -119,6 +119,82 @@ for _carpeta in ["_restringido", "_agente"]:
     HERRAMIENTAS_PROHIBIDAS.append(f"Write(./{_carpeta}/**)")
 
 
+# -----------------------------------------------------------------------------
+# CANDADO DE BASH (SANDBOX)
+# Las reglas de arriba solo frenan a las herramientas Read/Grep/Glob. Un script de
+# Python lanzado con Bash podría leer cualquier archivo del Mac (otras obras, el
+# token del bot). El sandbox de Claude Code lo impide a nivel del sistema
+# operativo: todo comando de Bash, y los programas que ese comando lance, solo
+# pueden leer las rutas permitidas. Si el sandbox no arranca, Claude no corre
+# comandos (falla cerrado), y no se permite el reintento "sin sandbox".
+# -----------------------------------------------------------------------------
+
+# Aquí listamos las rutas que ningún comando del agente puede leer
+_HOME = Path.home()
+_ONEDRIVE = WORKSPACE.parent.parent  # raíz del OneDrive (la obra vive en <OneDrive>/Constructo/<obra>)
+LECTURA_PROHIBIDA = [str(_ONEDRIVE), str(_HOME / ".config"), str(_HOME / ".ssh"),
+                     str(_HOME / "Downloads"), str(_HOME / "Documents"), str(_HOME / "Desktop"),
+                     str(_HOME / "Datos")]
+# Y aquí las excepciones, que sí se pueden leer aunque estén dentro de las anteriores:
+# la carpeta de esta obra y la base de precios de referencia (datos públicos)
+LECTURA_PERMITIDA = [str(WORKSPACE), str(_HOME / "Datos" / "constructo")]
+
+def _rutas_ajenas() -> list:
+    """Lista todo lo que hay en el OneDrive fuera de esta obra: las otras carpetas de
+    primer nivel y las obras hermanas. Se recalcula en cada consulta, así una obra
+    creada después de arrancar el bot también queda bloqueada."""
+    ajenas = []
+    for raiz, propia in ((_ONEDRIVE, WORKSPACE.parent), (WORKSPACE.parent, WORKSPACE)):
+        for ruta in raiz.iterdir():
+            if ruta != propia:
+                ajenas.append(ruta)
+    return ajenas + [Path(r) for r in LECTURA_PROHIBIDA[1:]]
+
+
+def _ajustes() -> str:
+    """Arma los ajustes de seguridad que se le pasan a claude en cada consulta.
+
+    - sandbox: candado de Bash a nivel del sistema operativo (ver arriba).
+    - permissions.deny: candado de las herramientas Read, Grep y Glob, que no pasan
+      por el sandbox. Se niega cada ruta ajena una por una, porque una regla que
+      niega toda la carpeta padre también bloquearía la obra propia.
+    """
+    negadas = []
+    for ruta in _rutas_ajenas():
+        for herramienta in ("Read", "Grep", "Glob"):
+            # Las rutas absolutas se escriben con doble barra al inicio ("//Users/...")
+            negadas.append(f"{herramienta}(/{ruta}/**)" if ruta.is_dir() else f"{herramienta}(/{ruta})")
+    return json.dumps({
+        "sandbox": {
+            "enabled": True,
+            "failIfUnavailable": True,
+            "allowUnsandboxedCommands": False,
+            "filesystem": {"denyRead": LECTURA_PROHIBIDA, "allowRead": LECTURA_PERMITIDA},
+        },
+        "permissions": {"deny": negadas},
+    })
+
+# -----------------------------------------------------------------------------
+# PRECIOS DE REFERENCIA
+# La base central de precios públicos (INVIAS, IDU) vive fuera de las obras. Cada
+# obra solo ve sus regiones, que vienen de la variable PRECIOS_REGIONES del
+# archivo de arranque (ej. "invias:6805"). Sin esa variable, el agente no sabe que
+# la herramienta existe.
+# -----------------------------------------------------------------------------
+PRECIOS_REGIONES = os.environ.get("PRECIOS_REGIONES", "").strip()
+_CONSULTA_PRECIOS = Path(__file__).resolve().parent.parent / "comun" / "precios" / "consultar_precios.py"
+COMANDO_PRECIOS = f"/usr/bin/python3 -I {_CONSULTA_PRECIOS}"
+
+INSTRUCCIONES_PRECIOS = """
+
+PRECIOS DE REFERENCIA PÚBLICOS:
+Tienes una herramienta de solo lectura con precios públicos de referencia (insumos, mano de obra, equipos y APU) de la región de esta obra. Úsala SOLO cuando pregunten por precios de mercado o de referencia, o pidan comparar un precio o un APU del proyecto contra una referencia. Ejecútala con Bash exactamente así (es la única excepción a la regla de no usar rutas absolutas):
+- {CMD} fuentes  (qué fuentes y ediciones hay)
+- {CMD} buscar "texto"  (ej. "acero refuerzo"; opcional --tipo insumo|apu|mano_obra)
+- {CMD} apu CODIGO  (desglose de un APU, con rendimientos)
+Reglas: es una REFERENCIA PÚBLICA, no el precio de la obra. El precio oficial sigue siendo el del presupuesto del proyecto: da primero ese, y ofrece la referencia como comparación o pregunta sugerida. Cita siempre fuente, edición y región. Si la herramienta muestra un valor "corregido por Constructo", di que es una corrección nuestra a un error de la fuente. Estas fuentes son de obra vial: si no hay un ítem equivalente, dilo en vez de forzar una comparación."""
+
+
 def _ruta_del_programa_claude() -> str:
     """Encuentra dónde está instalado el programa `claude` en el Mac.
     Si no lo encuentra en el PATH, prueba la ruta habitual de instalación."""
@@ -204,6 +280,14 @@ Si la pregunta es ambigua, pide la aclaración mínima necesaria."""
 # 4. LA FUNCIÓN PRINCIPAL: PREGUNTAR AL AGENTE
 # -----------------------------------------------------------------------------
 
+def _instrucciones() -> str:
+    """Arma las instrucciones de esta obra, con la sección de precios si la obra la tiene."""
+    texto = INSTRUCCIONES.replace("{OBRA}", OBRA)
+    if PRECIOS_REGIONES:
+        texto += INSTRUCCIONES_PRECIOS.replace("{CMD}", COMANDO_PRECIOS)
+    return texto
+
+
 # Aquí guardamos el "id de sesión" que Claude Code nos devuelve por cada chat de
 # Telegram. Pasándoselo de vuelta en la siguiente pregunta, el agente recuerda
 # la conversación anterior. La llave es el id del chat de Telegram.
@@ -250,9 +334,10 @@ def preguntar(chat_id: int, pregunta: str):
         "--output-format", "json",           # Nos devuelve la respuesta en JSON
         "--model", config.MODEL,             # Modelo elegido en config.py
         "--effort", config.EFFORT,           # Cuánto piensa antes de responder
-        "--append-system-prompt", INSTRUCCIONES.replace("{OBRA}", OBRA),  # Quién es y cómo debe trabajar
+        "--append-system-prompt", _instrucciones(),  # Quién es y cómo debe trabajar
         "--allowed-tools", *HERRAMIENTAS_PERMITIDAS,
         "--disallowed-tools", *HERRAMIENTAS_PROHIBIDAS,
+        "--settings", _ajustes(),           # Candados: qué rutas pueden leer Bash y las herramientas
     ]
 
     # Si ya hablamos antes en este chat, retomamos esa misma sesión para que

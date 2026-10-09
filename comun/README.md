@@ -11,6 +11,7 @@ Andamios reutilizables para arrancar y mantener un proyecto de agente de obra. *
 | Carpeta | Qué hay |
 |---|---|
 | `plantillas/` | Andamios para crear un proyecto nuevo: `AGENTS.md` de proyecto y los READMEs de los buzones |
+| `precios/` | Base central de precios de referencia públicos (INVIAS, IDU) y la herramienta con que la consultan los agentes. Ver `precios/README.md` |
 | `scripts/` | Utilidades que sirven a cualquier proyecto. Hoy solo `hidratar.py`, que fuerza la descarga de los archivos que OneDrive dejó como placeholder (ver abajo) |
 
 ## Sobre `scripts/hidratar.py`
